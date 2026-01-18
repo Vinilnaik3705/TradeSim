@@ -1,0 +1,164 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Light Mode Defaults */
+    --color-primary: #ffffff;
+    /* White bg */
+    --color-secondary: #f3f4f6;
+    /* Gray-100 card bg */
+    --color-text: #1f2937;
+    /* Gray-800 text */
+    --color-text-muted: #6b7280;
+    /* Gray-500 muted text */
+    --color-border: #e5e7eb;
+    /* Gray-200 border */
+    --color-accent: #0ea5e9;
+    /* Sky-500 */
+    --color-card: #f9fafb;
+    /* Gray-50 */
+    --color-hover: #f3f4f6;
+  }
+
+  .dark {
+    /* Dark Mode Defaults */
+    --color-primary: #050505;
+    /* True Black */
+    --color-secondary: #0A0A0A;
+    /* Almost Black (Card Bg) */
+    --color-text: #ffffff;
+    /* White text */
+    --color-text-muted: #94a3b8;
+    /* Slate-400 muted text */
+    --color-border: #262626;
+    /* Neutral 800 border */
+    --color-accent: #38BDF8;
+    /* Sky-400 */
+    --color-card: #0A0A0A;
+    --color-hover: #171717;
+    /* Neutral 900 */
+  }
+
+  html {
+    @apply overflow-x-hidden;
+    font-size: 16px;
+  }
+
+  body {
+    background-color: var(--color-primary);
+    color: var(--color-text);
+    @apply overflow-x-hidden transition-colors duration-300;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  /* Improved heading classes using variable colors */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    color: var(--color-text);
+  }
+
+  /* Applying variable colors to common elements */
+  p,
+  span,
+  div {
+    /* Inherit color by default, but allow overrides */
+  }
+
+  #root {
+    @apply overflow-x-hidden;
+  }
+
+  h1 {
+    @apply text-3xl font-bold leading-tight;
+  }
+
+  h2 {
+    @apply text-2xl font-bold leading-snug;
+  }
+
+  h3 {
+    @apply text-xl font-bold leading-normal;
+  }
+
+  h4 {
+    @apply text-lg font-semibold leading-normal;
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0F172A;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #475569;
+}
+
+/* Font Size Utilities - Consistent Typography Scale */
+@layer utilities {
+  .text-2xs {
+    font-size: 10px;
+    line-height: 1.4;
+  }
+
+  .text-xs {
+    font-size: 11px;
+    line-height: 1.5;
+  }
+
+  .text-sm {
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  .text-base {
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  .text-md {
+    font-size: 15px;
+    line-height: 1.6;
+  }
+
+  .text-lg {
+    font-size: 16px;
+    line-height: 1.6;
+  }
+
+  .text-xl {
+    font-size: 18px;
+    line-height: 1.5;
+  }
+
+  .text-2xl {
+    font-size: 24px;
+    line-height: 1.4;
+  }
+
+  .text-3xl {
+    font-size: 28px;
+    line-height: 1.3;
+  }
+
+  .text-4xl {
+    font-size: 32px;
+    line-height: 1.2;
+  }
+}
