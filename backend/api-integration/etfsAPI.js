@@ -2,12 +2,12 @@ const yahooFinance = require('yahoo-finance2').default;
 const cacheService = require('../services/cacheService');
 
 // Configure yahoo-finance2 to skip validation errors
-yahooFinance.setGlobalConfig({
-    validation: {
-        logErrors: false,
-        logOptionsErrors: false
-    }
-});
+// yahooFinance.setGlobalConfig({
+//     validation: {
+//         logErrors: false,
+//         logOptionsErrors: false
+//     }
+// });
 
 // Fallback mock data for when Yahoo Finance is rate-limited
 const FALLBACK_ETFS = [

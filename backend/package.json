@@ -29,7 +29,7 @@
     "razorpay": "^2.9.6",
     "rss-parser": "^3.13.0",
     "ws": "^8.14.2",
-    "yahoo-finance2": "^2.11.2"
+    "yahoo-finance2": "^3.11.2"
   },
   "devDependencies": {
     "nodemon": "^3.0.2"
