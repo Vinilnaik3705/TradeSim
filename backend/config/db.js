@@ -2,10 +2,13 @@ const mongoose = require('mongoose');
 
 const connectDB = async () => {
     try {
-        const conn = await mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/tradesim', {
-            // New Mongoose 6+ defaults render these options unnecessary but adding for clarity if using older versions or specific needs
-            // useStylesParser and useUnifiedTopology are now default true
-        });
+        mongoose.connect(process.env.MONGODB_URI)
+  .then(() => console.log("MongoDB connected"))
+  .catch(err => {
+    console.error("MongoDB connection failed:", err.message);
+    process.exit(1);
+  });
+
 
         console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
     } catch (error) {
