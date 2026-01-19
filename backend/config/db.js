@@ -4,42 +4,55 @@ const connectDB = async () => {
     try {
         let uri = process.env.MONGO_URI || process.env.MONGODB_URI || 'mongodb://localhost:27017/tradesim';
 
-        // Fix for unencoded special characters in password (specifically @)
-        // If the URI contains multiple @ symbols in the authority section, we assume the last one is the host separator
-        if (uri.includes('mongodb+srv://') && uri.split('@').length > 2) {
+        if (uri) uri = uri.trim(); // Trim whitespace
+
+        console.log('Checking MongoDB URI format...');
+
+        // Robust fix for unencoded special characters in password
+        if (uri.startsWith('mongodb+srv://')) {
             try {
                 const protocol = 'mongodb+srv://';
-                const parts = uri.substring(protocol.length).split('/');
-                const authAndHost = parts[0];
-                const cleanAuthAndHost = authAndHost.split('?')[0]; // Handle case where / is missing but ? starts queries (unlikely in valid URI but possible in malformed)
+                // Find the end of the authority section (start of path or query)
+                let authEndIndex = uri.indexOf('/', protocol.length);
+                if (authEndIndex === -1) {
+                    authEndIndex = uri.indexOf('?', protocol.length);
+                }
+                if (authEndIndex === -1) {
+                    authEndIndex = uri.length;
+                }
 
-                const lastAtIndex = cleanAuthAndHost.lastIndexOf('@');
-                if (lastAtIndex !== -1) {
-                    const credentials = cleanAuthAndHost.substring(0, lastAtIndex);
-                    const host = cleanAuthAndHost.substring(lastAtIndex + 1);
+                const authority = uri.substring(protocol.length, authEndIndex);
+                const pathAndQuery = uri.substring(authEndIndex);
 
+                // Check if authority contains multiple @ symbols (indicates unencoded password)
+                // Authority structure: user:password@host
+                // If password contains @, we will have > 1 @ symbol
+                if (authority.split('@').length > 2) {
+                    console.log('⚠️  Detected unencoded characters in MongoDB connection string. Fixing...');
+
+                    // The separator between credentials and host is the LAST @ in the authority section
+                    const lastAtIndex = authority.lastIndexOf('@');
+
+                    const credentials = authority.substring(0, lastAtIndex);
+                    const host = authority.substring(lastAtIndex + 1);
+
+                    // Split credentials into user and password
                     const firstColonIndex = credentials.indexOf(':');
+
                     if (firstColonIndex !== -1) {
                         const username = credentials.substring(0, firstColonIndex);
-                        const password = credentials.substring(firstColonIndex + 1);
+                        const rawPassword = credentials.substring(firstColonIndex + 1);
 
-                        // Check if password isn't already encoded (heuristic: contains @ but not %)
-                        // Actually, safer to always encodeURIComponent the password component if we reconstructed it
-                        // But standard encodeURIComponent encodes everything. We just need to ensure the URI format is valid.
+                        // Decode first to ensure we don't double-encode mixed content, then encode fully
+                        const encodedPassword = encodeURIComponent(decodeURIComponent(rawPassword));
 
-                        // Reconstruct URI with encoded password
-                        // We decodeFirst to avoid double encoding if it was partially encoded, essentially normalizing it.
-                        const encodedPassword = encodeURIComponent(decodeURIComponent(password));
-
-                        uri = `${protocol}${username}:${encodedPassword}@${host}`;
-                        if (parts.length > 1) {
-                            uri += '/' + parts.slice(1).join('/');
-                        }
-                        console.log('⚠️  Detected and fixed unencoded characters in MongoDB connection string.');
+                        // Reconstruct URI
+                        uri = `${protocol}${username}:${encodedPassword}@${host}${pathAndQuery}`;
+                        console.log('✅  Fixed MongoDB URI credentials.');
                     }
                 }
             } catch (e) {
-                console.error('Failed to auto-fix URI:', e.message);
+                console.error('Failed to parse and fix MongoDB URI:', e.message);
             }
         }
 
