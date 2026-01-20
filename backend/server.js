@@ -17,12 +17,28 @@ const connectDB = require('./config/db');
 connectDB();
 
 // Middleware
-app.use(cors({
-  origin: "*",
+const corsOptions = {
+  origin: function (origin, callback) {
+    // allow requests with no origin (like curl, Postman)
+    if (!origin) return callback(null, true);
+
+    const allowedOrigins = [
+      "https://trade-sim-tau.vercel.app"
+    ];
+
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"]
-}));
-app.options("*", cors());
+  allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: false,
+  optionsSuccessStatus: 200
+};
+app.use(cors(corsOptions));
+app.options("*", cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
