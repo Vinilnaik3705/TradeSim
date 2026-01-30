@@ -21,8 +21,8 @@ app.use(compression());
 // Middleware
 app.use(cors({
     origin: [
-        "https://trade-sim-tau.vercel.app",
-        "http://localhost:5173"
+        "http://localhost:5173",
+        "https://tradesim-9yh.pages.dev"
     ],
     credentials: true
 }));
