@@ -3,7 +3,7 @@ import axios from 'axios';
 import API_BASE_URL from '../config/api';
 
 const AuthContext = createContext(null);
-const API_URL = `${API_BASE_URL}/auth`;
+const API_URL = API_BASE_URL;
 
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
@@ -35,7 +35,7 @@ export const AuthProvider = ({ children }) => {
 
     const login = async (email, password) => {
         try {
-            const res = await axios.post(`${API_URL}/login`, { email, password });
+            const res = await axios.post(`${API_URL}/api/auth/login`, { email, password });
             if (res.data.token) {
                 localStorage.setItem('tradeSimToken', res.data.token);
                 // We typically get the user object back too, or we can fetch it
@@ -54,7 +54,7 @@ export const AuthProvider = ({ children }) => {
 
     const register = async (name, email, password) => {
         try {
-            const res = await axios.post(`${API_URL}/register`, { name, email, password });
+            const res = await axios.post(`${API_URL}/api/auth/register`, {name,email,password});
             if (res.data.token) {
                 localStorage.setItem('tradeSimToken', res.data.token);
                 setUser(res.data);
