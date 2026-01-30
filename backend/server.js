@@ -22,7 +22,8 @@ app.use(compression());
 app.use(cors({
     origin: [
         "http://localhost:5173",
-        "https://tradesim-9yh.pages.dev"
+        "https://tradesim-9yh.pages.dev",
+        /^https:\/\/.*\.tradesim-9yh\.pages\.dev$/
     ],
     credentials: true
 }));
