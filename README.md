@@ -105,7 +105,7 @@ Before running the project, ensure you have the following installed:
 ## 📦 Deployment
 
 ### Backend
-The backend is configured to run on standard Node.js environments. Ensure environment variables are set in your production environment (e.g., Render, Railway, Heroku).
+The backend is configured to run on standard Node.js environments. Ensure environment variables are set in your production environment (e.g., Render, Railway).
 
 ### Frontend
 The frontend can be built for production using:
