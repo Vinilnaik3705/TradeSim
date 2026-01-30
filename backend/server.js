@@ -41,6 +41,10 @@ app.get("/health", (req, res) => {
     });
 });
 
+app.get("/", (req, res) => {
+    res.send("TradeSim Backend Running ✅");
+});
+
 app.use("/api/stocks", stockRoutes);
 app.use("/api/etfs", etfRoutes);
 app.use("/api/crypto", cryptoRoutes);
