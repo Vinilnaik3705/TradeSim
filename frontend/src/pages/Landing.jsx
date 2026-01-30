@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Search, Menu, X, ArrowUpRight, TrendingUp, Newspaper, Github, Linkedin, Twitter, Mail, Phone, ExternalLink } from 'lucide-react';
+import { Search, Menu, X, ArrowUpRight, TrendingUp, Newspaper, Github, Linkedin, Twitter, Mail, Phone } from 'lucide-react';
 import heroBg from '../assets/background-3d-stars.png';
 import elegantBg from '../assets/background-elegant-dark.png';
 import proChart from '../assets/pro-chart.png';

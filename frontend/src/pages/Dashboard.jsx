@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import MainLayout from '../layouts/MainLayout';
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, AreaChart, Area, XAxis, YAxis, CartesianGrid } from 'recharts';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { ArrowUpRight, ArrowDownRight, DollarSign, Wallet, TrendingUp, TrendingDown, Activity, Shield, Zap, ArrowRight, RefreshCw } from 'lucide-react';
 import BentoCard from '../components/ui/BentoCard';
 import axios from 'axios';
@@ -81,38 +81,12 @@ export default function Dashboard() {
     const { marketType } = useMarket();
     const [marketData, setMarketData] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [priceData, setPriceData] = useState([]);
     const [news, setNews] = useState([]);
     const [newsLoading, setNewsLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
 
     // Generate mock chart data
-    useEffect(() => {
-        const data = [];
-        let basePrice = 45000;
-        const now = Math.floor(Date.now() / 1000);
 
-        for (let i = 30; i >= 0; i--) {
-            const time = now - (i * 24 * 60 * 60);
-            const open = basePrice + (Math.random() - 0.5) * 1000;
-            const close = open + (Math.random() - 0.5) * 2000;
-            const high = Math.max(open, close) + Math.random() * 500;
-            const low = Math.min(open, close) - Math.random() * 500;
-            const volume = Math.random() * 1000000;
-
-            data.push({
-                time,
-                open,
-                high,
-                low,
-                close,
-                volume,
-                value: close // For area chart
-            });
-            basePrice = close;
-        }
-        setPriceData(data);
-    }, []);
 
     // Fetch market data based on toggle
     useEffect(() => {
