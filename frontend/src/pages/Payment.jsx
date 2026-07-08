@@ -1,13 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { paymentService } from '../services/paymentService';
-import { CreditCard, Smartphone, Building2, Wallet, CheckCircle, XCircle, ArrowLeft } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import { CreditCard, Smartphone, Building2, Wallet, CheckCircle, XCircle, ArrowLeft, ShieldCheck, AlertTriangle, Lock } from 'lucide-react';
+import { Reveal, Stagger, StaggerItem } from '../components/motion';
 
 const Payment = () => {
     const navigate = useNavigate();
     const location = useLocation();
+    const { user } = useAuth();
     const [loading, setLoading] = useState(false);
     const [paymentStatus, setPaymentStatus] = useState(null); // 'success' or 'failed'
+    const [gatewayReady, setGatewayReady] = useState(null); // null = checking, true/false
+    const [errorMessage, setErrorMessage] = useState('');
 
     // Get order details from navigation state
     const orderDetails = location.state || {
@@ -19,6 +25,11 @@ const Payment = () => {
     };
 
     useEffect(() => {
+        // Check gateway configuration
+        paymentService.getConfig().then((cfg) => {
+            setGatewayReady(!!cfg.configured);
+        });
+
         // Load Razorpay script
         const script = document.createElement('script');
         script.src = 'https://checkout.razorpay.com/v1/checkout.js';
@@ -26,12 +37,15 @@ const Payment = () => {
         document.body.appendChild(script);
 
         return () => {
-            document.body.removeChild(script);
+            if (script.parentNode) {
+                script.parentNode.removeChild(script);
+            }
         };
     }, []);
 
     const handlePayment = async () => {
         setLoading(true);
+        setErrorMessage('');
         try {
             // Create order
             const orderData = {
@@ -48,7 +62,7 @@ const Payment = () => {
 
             const { order, key_id } = await paymentService.createOrder(orderData);
 
-            // Razorpay options
+            // Razorpay options — UPI and Cards prioritized for Indian users
             const options = {
                 key: key_id,
                 amount: order.amount,
@@ -57,7 +71,7 @@ const Payment = () => {
                 description: `${orderDetails.type === 'subscription' ? 'Pro Subscription' : `Purchase ${orderDetails.quantity} ${orderDetails.assetSymbol}`}`,
                 order_id: order.id,
                 handler: async function (response) {
-                    // Payment successful
+                    // Payment successful — verify signature server-side
                     try {
                         const verifyData = await paymentService.verifyPayment({
                             razorpay_order_id: response.razorpay_order_id,
@@ -70,18 +84,41 @@ const Payment = () => {
                             setTimeout(() => {
                                 navigate('/dashboard');
                             }, 3000);
+                        } else {
+                            setPaymentStatus('failed');
                         }
                     } catch (error) {
                         setPaymentStatus('failed');
                     }
                 },
                 prefill: {
-                    name: '',
-                    email: '',
+                    name: user?.name || '',
+                    email: user?.email || '',
                     contact: ''
                 },
                 theme: {
-                    color: '#2962FF'
+                    color: '#38BDF8',
+                    backdrop_color: 'rgba(2, 8, 14, 0.9)'
+                },
+                config: {
+                    display: {
+                        blocks: {
+                            upi: {
+                                name: 'Pay via UPI',
+                                instruments: [{ method: 'upi' }]
+                            },
+                            cards: {
+                                name: 'Credit / Debit Cards',
+                                instruments: [{ method: 'card' }]
+                            },
+                            other: {
+                                name: 'Other Methods',
+                                instruments: [{ method: 'netbanking' }, { method: 'wallet' }]
+                            }
+                        },
+                        sequence: ['block.upi', 'block.cards', 'block.other'],
+                        preferences: { show_default_blocks: false }
+                    }
                 },
                 modal: {
                     ondismiss: function () {
@@ -100,66 +137,85 @@ const Payment = () => {
             setLoading(false);
         } catch (error) {
             console.error('Payment error:', error);
-            setPaymentStatus('failed');
+            setErrorMessage(error.message || 'Unable to start payment. Please try again.');
             setLoading(false);
         }
     };
 
     if (paymentStatus === 'success') {
         return (
-            <div className="min-h-screen bg-white flex items-center justify-center p-4">
-                <div className="max-w-md w-full text-center space-y-6">
-                    <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto">
-                        <CheckCircle size={48} className="text-green-600" />
-                    </div>
-                    <h1 className="text-3xl font-bold text-gray-900">Payment Successful!</h1>
-                    <p className="text-gray-600">Your transaction has been completed successfully.</p>
-                    <p className="text-sm text-gray-500">Redirecting to dashboard...</p>
-                </div>
+            <div className="min-h-screen bg-background kx-grid-bg flex items-center justify-center p-4">
+                <motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+                    className="max-w-md w-full text-center space-y-6 kx-glass rounded-2xl p-10"
+                >
+                    <motion.div
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        transition={{ delay: 0.2, type: 'spring', stiffness: 200, damping: 15 }}
+                        className="w-20 h-20 bg-success/[0.12] border border-success/[0.3] rounded-full flex items-center justify-center mx-auto"
+                    >
+                        <CheckCircle size={44} className="text-success" />
+                    </motion.div>
+                    <h1 className="text-3xl font-extrabold text-white">Payment Successful</h1>
+                    <p className="text-[rgba(255,255,255,0.5)]">Your transaction has been completed successfully.</p>
+                    <p className="text-sm text-[rgba(255,255,255,0.3)]">Redirecting to dashboard...</p>
+                </motion.div>
             </div>
         );
     }
 
     if (paymentStatus === 'failed') {
         return (
-            <div className="min-h-screen bg-white flex items-center justify-center p-4">
-                <div className="max-w-md w-full text-center space-y-6">
-                    <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto">
-                        <XCircle size={48} className="text-red-600" />
+            <div className="min-h-screen bg-background kx-grid-bg flex items-center justify-center p-4">
+                <motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+                    className="max-w-md w-full text-center space-y-6 kx-glass rounded-2xl p-10"
+                >
+                    <div className="w-20 h-20 bg-danger/[0.12] border border-danger/[0.3] rounded-full flex items-center justify-center mx-auto">
+                        <XCircle size={44} className="text-danger" />
                     </div>
-                    <h1 className="text-3xl font-bold text-gray-900">Payment Failed</h1>
-                    <p className="text-gray-600">There was an issue processing your payment.</p>
+                    <h1 className="text-3xl font-extrabold text-white">Payment Failed</h1>
+                    <p className="text-[rgba(255,255,255,0.5)]">There was an issue processing your payment.</p>
                     <div className="flex gap-4 justify-center">
                         <button
                             onClick={() => setPaymentStatus(null)}
-                            className="px-6 py-3 bg-[#2962FF] text-white rounded-lg font-medium hover:bg-[#1e4bd1] transition-colors"
+                            className="kx-shimmer px-6 py-3 bg-accent text-black rounded-xl font-bold hover:brightness-110 transition-all"
                         >
                             Try Again
                         </button>
                         <button
                             onClick={() => navigate(-1)}
-                            className="px-6 py-3 bg-gray-200 text-gray-900 rounded-lg font-medium hover:bg-gray-300 transition-colors"
+                            className="px-6 py-3 bg-white/[0.06] text-white border border-white/[0.1] rounded-xl font-bold hover:bg-white/[0.1] transition-colors"
                         >
                             Go Back
                         </button>
                     </div>
-                </div>
+                </motion.div>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-white">
+        <div className="min-h-screen bg-background">
             {/* Header */}
-            <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
+            <div className="bg-background/80 backdrop-blur-xl border-b border-white/[0.06] sticky top-0 z-10">
                 <div className="max-w-4xl mx-auto px-6 py-4 flex items-center gap-4">
                     <button
                         onClick={() => navigate(-1)}
-                        className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                        aria-label="Go back"
+                        className="p-2 hover:bg-white/[0.06] rounded-lg transition-colors"
                     >
-                        <ArrowLeft size={24} className="text-gray-700" />
+                        <ArrowLeft size={22} className="text-white" />
                     </button>
-                    <h1 className="text-2xl font-bold text-gray-900">Complete Payment</h1>
+                    <h1 className="text-xl font-extrabold text-white">Complete Payment</h1>
+                    <div className="ml-auto flex items-center gap-2 text-[11px] text-[rgba(255,255,255,0.4)] font-bold uppercase tracking-wider">
+                        <Lock size={13} className="text-success" /> Secured by Razorpay
+                    </div>
                 </div>
             </div>
 
@@ -168,100 +224,123 @@ const Payment = () => {
                 <div className="grid md:grid-cols-2 gap-8">
                     {/* Order Summary */}
                     <div className="space-y-6">
-                        <div>
-                            <h2 className="text-xl font-bold text-gray-900 mb-4">Order Summary</h2>
-                            <div className="bg-gray-50 rounded-xl p-6 space-y-4">
+                        <Reveal y={16}>
+                            <h2 className="text-lg font-extrabold text-white mb-4">Order Summary</h2>
+                            <div className="kx-card kx-glass rounded-2xl p-6 space-y-4">
                                 <div className="flex justify-between items-center">
-                                    <span className="text-gray-600">Item</span>
-                                    <span className="font-semibold text-gray-900">
+                                    <span className="text-[rgba(255,255,255,0.4)] text-sm">Item</span>
+                                    <span className="font-bold text-white text-sm">
                                         {orderDetails.type === 'subscription' ? 'Pro Subscription' : orderDetails.assetName}
                                     </span>
                                 </div>
                                 {orderDetails.type !== 'subscription' && (
                                     <>
                                         <div className="flex justify-between items-center">
-                                            <span className="text-gray-600">Symbol</span>
-                                            <span className="font-mono text-gray-900">{orderDetails.assetSymbol}</span>
+                                            <span className="text-[rgba(255,255,255,0.4)] text-sm">Symbol</span>
+                                            <span className="font-mono price-mono text-white text-sm">{orderDetails.assetSymbol}</span>
                                         </div>
                                         <div className="flex justify-between items-center">
-                                            <span className="text-gray-600">Quantity</span>
-                                            <span className="font-semibold text-gray-900">{orderDetails.quantity}</span>
+                                            <span className="text-[rgba(255,255,255,0.4)] text-sm">Quantity</span>
+                                            <span className="font-bold text-white text-sm">{orderDetails.quantity}</span>
                                         </div>
                                     </>
                                 )}
-                                <div className="border-t border-gray-200 pt-4">
+                                <div className="border-t border-white/[0.08] pt-4">
                                     <div className="flex justify-between items-center">
-                                        <span className="text-lg font-bold text-gray-900">Total Amount</span>
-                                        <span className="text-2xl font-bold text-[#2962FF]">
-                                            ₹{orderDetails.amount.toLocaleString('en-IN')}
+                                        <span className="text-base font-extrabold text-white">Total Amount</span>
+                                        <span className="text-2xl font-extrabold text-accent font-mono price-mono">
+                                            {'₹'}{orderDetails.amount.toLocaleString('en-IN')}
                                         </span>
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        </Reveal>
 
                         {/* Payment Methods Info */}
-                        <div>
-                            <h3 className="text-lg font-semibold text-gray-900 mb-4">Supported Payment Methods</h3>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg hover:bg-blue-50 transition-colors cursor-pointer border border-transparent hover:border-blue-200">
-                                    <div className="flex -space-x-2">
-                                        <div className="w-8 h-8 rounded-full bg-white border border-gray-200 flex items-center justify-center p-1">
-                                            <img src="https://uxwing.com/wp-content/themes/uxwing/download/brands-and-social-media/google-pay-icon.png" alt="GPay" className="w-full h-full object-contain" />
-                                        </div>
-                                        <div className="w-8 h-8 rounded-full bg-white border border-gray-200 flex items-center justify-center p-1">
-                                            <img src="https://uxwing.com/wp-content/themes/uxwing/download/brands-and-social-media/phonepe-icon.png" alt="PhonePe" className="w-full h-full object-contain" />
-                                        </div>
-                                        <div className="w-8 h-8 rounded-full bg-white border border-gray-200 flex items-center justify-center p-1">
-                                            <img src="https://uxwing.com/wp-content/themes/uxwing/download/brands-and-social-media/paytm-icon.png" alt="Paytm" className="w-full h-full object-contain" />
-                                        </div>
+                        <Reveal y={16} delay={0.1}>
+                            <h3 className="text-sm font-extrabold text-white mb-4 uppercase tracking-wider">Supported Payment Methods</h3>
+                            <Stagger gap={0.06} className="grid grid-cols-2 gap-3">
+                                <StaggerItem y={12} className="flex items-center gap-3 p-4 kx-glass rounded-xl hover:border-accent/30 transition-colors">
+                                    <Smartphone className="text-accent shrink-0" size={22} />
+                                    <div>
+                                        <span className="text-sm font-bold text-white block">UPI</span>
+                                        <span className="text-[10px] text-[rgba(255,255,255,0.35)]">GPay, PhonePe, Paytm</span>
                                     </div>
-                                    <span className="text-sm font-medium text-gray-700">UPI Apps</span>
-                                </div>
-                                <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
-                                    <CreditCard className="text-[#2962FF]" size={24} />
-                                    <span className="text-sm font-medium text-gray-700">Cards</span>
-                                </div>
-                                <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
-                                    <Building2 className="text-[#2962FF]" size={24} />
-                                    <span className="text-sm font-medium text-gray-700">Net Banking</span>
-                                </div>
-                                <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
-                                    <Wallet className="text-[#2962FF]" size={24} />
-                                    <span className="text-sm font-medium text-gray-700">Wallets</span>
-                                </div>
-                            </div>
-                        </div>
+                                </StaggerItem>
+                                <StaggerItem y={12} className="flex items-center gap-3 p-4 kx-glass rounded-xl hover:border-accent/30 transition-colors">
+                                    <CreditCard className="text-accent shrink-0" size={22} />
+                                    <div>
+                                        <span className="text-sm font-bold text-white block">Cards</span>
+                                        <span className="text-[10px] text-[rgba(255,255,255,0.35)]">Visa, Mastercard, RuPay</span>
+                                    </div>
+                                </StaggerItem>
+                                <StaggerItem y={12} className="flex items-center gap-3 p-4 kx-glass rounded-xl hover:border-accent/30 transition-colors">
+                                    <Building2 className="text-accent shrink-0" size={22} />
+                                    <span className="text-sm font-bold text-white">Net Banking</span>
+                                </StaggerItem>
+                                <StaggerItem y={12} className="flex items-center gap-3 p-4 kx-glass rounded-xl hover:border-accent/30 transition-colors">
+                                    <Wallet className="text-accent shrink-0" size={22} />
+                                    <span className="text-sm font-bold text-white">Wallets</span>
+                                </StaggerItem>
+                            </Stagger>
+                        </Reveal>
                     </div>
 
                     {/* Payment Action */}
                     <div className="space-y-6">
-                        <div className="bg-gradient-to-br from-[#2962FF] to-[#1e4bd1] rounded-2xl p-8 text-white space-y-6">
-                            <h2 className="text-2xl font-bold">Secure Payment</h2>
-                            <p className="text-blue-100">
-                                Your payment is secured by Razorpay. We support all major payment methods in India.
-                            </p>
-                            <button
-                                onClick={handlePayment}
-                                disabled={loading}
-                                className="w-full bg-white text-[#2962FF] py-4 rounded-xl font-bold text-lg hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                                {loading ? 'Processing...' : 'Proceed to Pay'}
-                            </button>
-                            <div className="flex items-center justify-center gap-2 text-sm text-blue-100">
-                                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
-                                </svg>
-                                <span>Design by Kryonex</span>
+                        <Reveal y={16} delay={0.15}>
+                            <div className="kx-card relative overflow-hidden rounded-2xl p-8 space-y-6 border border-accent/[0.15]" style={{ background: 'linear-gradient(160deg, rgba(56,189,248,0.12), rgba(5,13,20,0.9))' }}>
+                                <div className="absolute top-0 right-0 w-48 h-48 bg-accent/[0.15] rounded-full blur-[80px] pointer-events-none" />
+                                <div className="relative z-10 space-y-6">
+                                    <div className="flex items-center gap-3">
+                                        <div className="p-2.5 rounded-xl bg-accent/[0.12] border border-accent/[0.25] text-accent">
+                                            <ShieldCheck size={22} />
+                                        </div>
+                                        <h2 className="text-xl font-extrabold text-white">Secure Payment</h2>
+                                    </div>
+                                    <p className="text-[rgba(255,255,255,0.5)] text-sm leading-relaxed">
+                                        Your payment is secured by Razorpay with end-to-end encryption. UPI and all major Indian payment methods supported.
+                                    </p>
+
+                                    {gatewayReady === false && (
+                                        <div className="flex items-start gap-3 bg-warning/[0.08] border border-warning/[0.25] rounded-xl p-4">
+                                            <AlertTriangle size={18} className="text-warning shrink-0 mt-0.5" />
+                                            <p className="text-[12px] text-warning leading-relaxed">
+                                                Payment gateway is not configured yet. Add <span className="font-mono font-bold">RAZORPAY_KEY_ID</span> and <span className="font-mono font-bold">RAZORPAY_KEY_SECRET</span> to the server environment to enable live payments.
+                                            </p>
+                                        </div>
+                                    )}
+
+                                    {errorMessage && (
+                                        <div className="flex items-start gap-3 bg-danger/[0.08] border border-danger/[0.25] rounded-xl p-4">
+                                            <XCircle size={18} className="text-danger shrink-0 mt-0.5" />
+                                            <p className="text-[12px] text-danger leading-relaxed">{errorMessage}</p>
+                                        </div>
+                                    )}
+
+                                    <button
+                                        onClick={handlePayment}
+                                        disabled={loading || gatewayReady === false}
+                                        className="kx-shimmer w-full bg-accent text-black py-4 rounded-xl font-extrabold text-base hover:brightness-110 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                                    >
+                                        {loading ? 'Processing...' : gatewayReady === null ? 'Checking gateway...' : 'Proceed to Pay'}
+                                    </button>
+                                    <div className="flex items-center justify-center gap-2 text-[11px] text-[rgba(255,255,255,0.35)] font-bold uppercase tracking-wider">
+                                        <Lock size={12} />
+                                        <span>256-bit SSL Encrypted</span>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
+                        </Reveal>
 
                         {/* Test Mode Info */}
-                        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                            <p className="text-sm text-yellow-800">
-                                <strong>Test Mode:</strong> Use test UPI ID or test card numbers for testing.
-                            </p>
-                        </div>
+                        <Reveal y={16} delay={0.25}>
+                            <div className="kx-glass border border-warning/[0.2] rounded-xl p-4">
+                                <p className="text-[12px] text-[rgba(255,255,255,0.5)] leading-relaxed">
+                                    <strong className="text-warning">Test Mode:</strong> Use UPI ID <span className="font-mono text-white">success@razorpay</span> or card <span className="font-mono text-white">4111 1111 1111 1111</span> for testing.
+                                </p>
+                            </div>
+                        </Reveal>
                     </div>
                 </div>
             </div>

@@ -259,10 +259,10 @@ export default function Dashboard() {
                         <div style={{ fontSize: 11, color: totalPnL >= 0 ? '#22d3a0' : '#f43f5e', marginTop: 4, fontWeight: 600 }}>
                             {totalPnL >= 0 ? '↑' : '↓'} {pnlPercent.toFixed(2)}%
                         </div>
-                    </div>
+                    </StaggerItem>
 
                     {/* OPEN POSITIONS */}
-                    <div style={{
+                    <StaggerItem y={16} style={{
                         background: 'rgba(255,255,255,0.04)',
                         borderRadius: 14,
                         padding: '14px 16px',
@@ -278,8 +278,8 @@ export default function Dashboard() {
                             {allHoldings.length}
                         </div>
                         <div style={{ fontSize: 11, color: '#f59e0b', marginTop: 4, fontWeight: 600 }}>Active trades</div>
-                    </div>
-                </div>
+                    </StaggerItem>
+                </Stagger>
 
                 {/* Row 2 - Feature Grid */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">

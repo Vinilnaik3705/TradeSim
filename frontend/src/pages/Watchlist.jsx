@@ -12,6 +12,7 @@ import { formatPrice } from '../utils/formatPrice';
 import { useCurrency } from '../context/CurrencyContext';
 import { formatAmount } from '../utils/formatCurrency';
 import CoinIcon from '../components/ui/CoinIcon';
+import { Reveal } from '../components/motion';
 
 const API_URL = `${API_BASE_URL}`;
 
@@ -90,7 +91,7 @@ export default function Watchlist() {
     return (
         <MainLayout>
             <div className="space-y-5">
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
+                <Reveal y={12} duration={0.5} className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
                     <div>
                         <h2 className="text-xl font-extrabold text-white">My Watchlist</h2>
                         <p className="text-[rgba(255,255,255,0.3)] mt-0.5 text-[12px]">Track your favorite assets</p>
@@ -108,7 +109,7 @@ export default function Watchlist() {
                             />
                         </div>
                     </div>
-                </div>
+                </Reveal>
 
                 <BentoCard>
                     <div className="hidden sm:block overflow-x-auto min-h-[400px]">

@@ -13,6 +13,7 @@ import API_BASE_URL from '../config/api';
 import { useCurrency } from '../context/CurrencyContext';
 import { formatAmount } from '../utils/formatCurrency';
 import CoinIcon from '../components/ui/CoinIcon';
+import { Reveal } from '../components/motion';
 
 // Format large numbers - these are now only used during data fetch to store formatted strings
 // The actual display uses formatAmount(convert(...), currency) for currency-aware formatting
@@ -101,7 +102,7 @@ export default function Markets() {
     return (
         <MainLayout>
             <div className="space-y-5">
-                <div className="flex flex-col gap-4">
+                <Reveal y={12} duration={0.5} className="flex flex-col gap-4">
                     <div>
                         <h2 className="text-xl font-extrabold text-white">Crypto Market</h2>
                         <p className="text-[rgba(255,255,255,0.3)] mt-0.5 text-[12px]">Real-time prices and analysis for top cryptocurrencies</p>
@@ -134,7 +135,7 @@ export default function Markets() {
                             />
                         </div>
                     </div>
-                </div>
+                </Reveal>
 
                 <BentoCard>
                     {isLoading ? (

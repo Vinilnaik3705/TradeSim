@@ -8,6 +8,7 @@ import { formatPrice } from '../utils/formatPrice';
 import { useCurrency } from '../context/CurrencyContext';
 import { formatAmount } from '../utils/formatCurrency';
 import CoinIcon from '../components/ui/CoinIcon';
+import { Reveal } from '../components/motion';
 
 const ASSET_COLORS = {
     'BTC': '#F59E0B',
@@ -71,10 +72,10 @@ export default function Portfolio() {
     return (
         <MainLayout>
             <div className="space-y-5 pb-6">
-                <div>
+                <Reveal y={12} duration={0.5}>
                     <h2 className="text-xl sm:text-2xl font-extrabold text-white">Portfolio</h2>
                     <p className="text-[rgba(255,255,255,0.3)] mt-0.5 text-[11px] sm:text-sm">Live holdings and real-time performance tracking</p>
-                </div>
+                </Reveal>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                     {/* Summary Card */}

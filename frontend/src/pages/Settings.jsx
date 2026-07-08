@@ -3,6 +3,7 @@ import MainLayout from '../layouts/MainLayout';
 import { User, Shield, Sun, Smartphone, Key } from 'lucide-react';
 import BentoCard from '../components/ui/BentoCard';
 import { useAuth } from '../context/AuthContext';
+import { Reveal } from '../components/motion';
 
 export default function Settings() {
     const { user } = useAuth();
@@ -10,10 +11,10 @@ export default function Settings() {
     return (
         <MainLayout>
             <div className="space-y-5 max-w-4xl mx-auto">
-                <div>
+                <Reveal y={12} duration={0.5}>
                     <h2 className="text-xl font-extrabold text-white">Settings</h2>
                     <p className="text-[rgba(255,255,255,0.3)] mt-0.5 text-[12px]">Manage your account preferences and security</p>
-                </div>
+                </Reveal>
 
                 <BentoCard title="Profile Information" icon={User}>
                     <div className="flex items-center gap-5 mb-6">
