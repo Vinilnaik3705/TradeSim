@@ -3,6 +3,17 @@ import API_BASE_URL from '../config/api';
 const API_URL = `${API_BASE_URL}/payment`;
 
 export const paymentService = {
+    // Check whether the payment gateway is configured on the backend
+    getConfig: async () => {
+        try {
+            const response = await fetch(`${API_URL}/config`);
+            if (!response.ok) return { configured: false };
+            return await response.json();
+        } catch {
+            return { configured: false };
+        }
+    },
+
     // Create Razorpay order
     createOrder: async (orderData) => {
         try {
