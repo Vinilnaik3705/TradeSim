@@ -26,6 +26,8 @@ import { CoinLogoProvider } from './context/CoinLogoContext';
 import { useLocation } from 'react-router-dom';
 import { useEffect } from 'react';
 import { Loader } from 'lucide-react';
+import { AnimatePresence } from 'framer-motion';
+import { PageTransition } from './components/motion';
 
 const ScrollToTop = () => {
   const { pathname } = useLocation();
@@ -35,6 +37,17 @@ const ScrollToTop = () => {
   }, [pathname]);
 
   return null;
+};
+
+const AnimatedRoutes = ({ children }) => {
+  const location = useLocation();
+  return (
+    <AnimatePresence mode="wait" initial={false}>
+      <PageTransition key={location.pathname}>
+        {React.cloneElement(children, { location })}
+      </PageTransition>
+    </AnimatePresence>
+  );
 };
 
 const AuthenticatedRedirect = ({ children }) => {
@@ -68,6 +81,7 @@ function App() {
                   <ScrollToTop />
                   <div className="min-h-screen bg-primary text-white font-sans antialiased selection:bg-accent selection:text-white transition-colors duration-300">
                     <AuthenticatedRedirect>
+                      <AnimatedRoutes>
                       <Routes>
                         <Route path="/" element={<Landing />} />
                         <Route path="/login" element={<Login />} />
@@ -132,6 +146,7 @@ function App() {
                       {/* Fallback */}
                         <Route path="*" element={<Navigate to="/" replace />} />
                       </Routes>
+                      </AnimatedRoutes>
                     </AuthenticatedRedirect>
                   </div>
                 </Router>

@@ -14,6 +14,7 @@ import API_BASE_URL from '../config/api';
 import { formatPrice } from '../utils/formatPrice';
 import { useCurrency } from '../context/CurrencyContext';
 import { formatAmount } from '../utils/formatCurrency';
+import { Reveal, Stagger, StaggerItem } from '../components/motion';
 
 const ASSET_COLORS = {
     'BTC': '#F59E0B',
@@ -159,7 +160,7 @@ export default function Dashboard() {
         <MainLayout>
             <div className="space-y-5">
                 {/* Header */}
-                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 px-4 sm:px-0">
+                <Reveal y={12} duration={0.5} className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 px-4 sm:px-0">
                     <div>
                         <h2 className="text-xl font-extrabold text-white">Dashboard</h2>
                         <p className="text-[rgba(255,255,255,0.3)] mt-0.5 text-[12px]">Crypto market overview & analysis</p>
@@ -169,15 +170,16 @@ export default function Dashboard() {
                             <Wallet size={16} /> Add Funds (Admin)
                         </Link>
                     )}
-                </div>
+                </Reveal>
 
                 {/* Stat Cards Grid - Responsive fix */}
-                <div
+                <Stagger
+                    gap={0.07}
                     className="grid gap-3 px-4 sm:px-0 w-full box-border"
                     style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))' }}
                 >
                     {/* AVAILABLE BALANCE */}
-                    <div style={{
+                    <StaggerItem y={16} style={{
                         background: 'rgba(255,255,255,0.04)',
                         borderRadius: 14,
                         padding: '14px 16px',
@@ -201,10 +203,10 @@ export default function Dashboard() {
                             {formatAmount(convert(walletBalance), currency)}
                         </div>
                         <div style={{ fontSize: 11, color: '#38bdf8', marginTop: 4, fontWeight: 600 }}>Cash ready</div>
-                    </div>
+                    </StaggerItem>
 
                     {/* PORTFOLIO VALUE */}
-                    <div style={{
+                    <StaggerItem y={16} style={{
                         background: 'rgba(255,255,255,0.04)',
                         borderRadius: 14,
                         padding: '14px 16px',
@@ -228,10 +230,10 @@ export default function Dashboard() {
                             {formatAmount(convert(portfolioValue), currency)}
                         </div>
                         <div style={{ fontSize: 11, color: '#22d3a0', marginTop: 4, fontWeight: 600 }}>Holdings active</div>
-                    </div>
+                    </StaggerItem>
 
                     {/* TOTAL P&L */}
-                    <div style={{
+                    <StaggerItem y={16} style={{
                         background: 'rgba(255,255,255,0.04)',
                         borderRadius: 14,
                         padding: '14px 16px',

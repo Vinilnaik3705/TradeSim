@@ -221,3 +221,176 @@
 button, a, input, select, textarea {
   transition: all 0.2s ease;
 }
+
+/* ═══════════════════════════════════════════════
+   Kryonex Motion & Surface System
+   ═══════════════════════════════════════════════ */
+
+/* ── Marquee ── */
+@keyframes kx-marquee-scroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+.kx-marquee {
+  animation: kx-marquee-scroll 30s linear infinite;
+  will-change: transform;
+}
+
+.kx-marquee-pausable:hover {
+  animation-play-state: paused;
+}
+
+/* ── Glass card surface ── */
+.kx-glass {
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.01));
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+/* ── Card with accent glow on hover ── */
+.kx-card {
+  position: relative;
+  border-radius: 16px;
+  border: 1px solid var(--color-border);
+  background: var(--color-card);
+  transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
+}
+
+.kx-card:hover {
+  border-color: rgba(56, 189, 248, 0.25);
+  box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.08), 0 12px 40px -12px rgba(56, 189, 248, 0.15);
+}
+
+/* ── Grid background pattern ── */
+.kx-grid-bg {
+  background-image:
+    linear-gradient(rgba(56, 189, 248, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(56, 189, 248, 0.04) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+
+.kx-grid-fade {
+  mask-image: radial-gradient(ellipse 80% 60% at 50% 40%, black 30%, transparent 75%);
+  -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 40%, black 30%, transparent 75%);
+}
+
+/* ── Shimmer sweep on hover (buttons) ── */
+.kx-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+
+.kx-shimmer::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(105deg, transparent 40%, rgba(255, 255, 255, 0.18) 50%, transparent 60%);
+  transform: translateX(-120%);
+  transition: transform 0.7s ease;
+  pointer-events: none;
+}
+
+.kx-shimmer:hover::after {
+  transform: translateX(120%);
+}
+
+/* ── Animated underline for links ── */
+.kx-underline {
+  position: relative;
+}
+
+.kx-underline::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -2px;
+  width: 100%;
+  height: 1px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.kx-underline:hover::after {
+  transform: scaleX(1);
+  transform-origin: left;
+}
+
+/* ── Gradient text ── */
+.kx-gradient-text {
+  background: linear-gradient(120deg, #ffffff 20%, #38BDF8 60%, #7dd3fc 90%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+/* ── Pulsing live dot ── */
+@keyframes kx-pulse-dot {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(34, 211, 160, 0.5); }
+  50% { box-shadow: 0 0 0 6px rgba(34, 211, 160, 0); }
+}
+
+.kx-live-dot {
+  animation: kx-pulse-dot 2s ease-in-out infinite;
+}
+
+/* ── Slow spin (decorative rings) ── */
+@keyframes kx-spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.kx-spin-slow {
+  animation: kx-spin-slow 24s linear infinite;
+}
+
+/* ── Floating animation ── */
+@keyframes kx-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-12px); }
+}
+
+.kx-float {
+  animation: kx-float 7s ease-in-out infinite;
+}
+
+/* ── Skeleton shimmer ── */
+@keyframes kx-skeleton {
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
+}
+
+.kx-skeleton {
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.03) 25%, rgba(255, 255, 255, 0.08) 50%, rgba(255, 255, 255, 0.03) 75%);
+  background-size: 200% 100%;
+  animation: kx-skeleton 1.6s ease-in-out infinite;
+}
+
+/* ── Focus visibility (a11y) ── */
+:focus-visible {
+  outline: 2px solid rgba(56, 189, 248, 0.7);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ── Reduced motion ── */
+@media (prefers-reduced-motion: reduce) {
+  .kx-marquee,
+  .kx-spin-slow,
+  .kx-float,
+  .kx-live-dot,
+  .kx-skeleton {
+    animation: none !important;
+  }
+
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}
